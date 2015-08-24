@@ -1,5 +1,10 @@
+// A sample program that uses the ImageLocalizationLayer to read object label
+// and bounding boxes.
+// TODO(tianyang): I am being lazy. Will write tests!
+
 #include <vector>
 
+#include <glog/logging.h>
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
@@ -10,31 +15,48 @@ using namespace std;
 
 #define Dtype float
 
-int main(int argc, char** argv) {
-	vector<Blob<Dtype>*> blob_bottom_vec;
-	vector<Blob<Dtype>*> blob_top_vec;
+DEFINE_string(root_folder, "", "Root folder of the PASCAL devkit.");
+DEFINE_string(source, "", "Filename of the PASCAL ground-truths.");
 
-	blob_top_vec.push_back(new Blob<Dtype>());
-    blob_top_vec.push_back(new Blob<Dtype>());
+int main(int argc, char **argv) {
+  FLAGS_alsologtostderr = 1;
+  caffe::GlobalInit(&argc, &argv);
 
+  CHECK(!FLAGS_source.empty())
+      << "You have to set the filename of the PASCAL ground-truths.";
 
-	LayerParameter param;
-  	ImageDataParameter* image_data_param = param.mutable_image_data_param();
-  	image_data_param->set_batch_size(5);
-  	image_data_param->set_root_folder("/home/tianyang/Downloads/");
-  	image_data_param->set_source("/home/tianyang/Downloads/VOCdevkit/VOC2007/label.txt");
-  	image_data_param->set_shuffle(false);
-  	image_data_param->set_new_height(100);
-  	image_data_param->set_new_width(100);
+  vector<Blob<Dtype> *> blob_bottom_vec;
+  vector<Blob<Dtype> *> blob_top_vec;
 
-  	ImageLocalizationDataLayer<Dtype> layer(param);
-  	layer.SetUp(blob_bottom_vec, blob_top_vec);
-  	layer.Forward(blob_bottom_vec, blob_top_vec);
-  	const Dtype* label = blob_top_vec[1]->cpu_data();
-  	for(int i = 0; i < blob_top_vec[1]->count(); ++i) {
-  		LOG(INFO) << label[i];
-  	}
+  blob_top_vec.push_back(new Blob<Dtype>());
+  blob_top_vec.push_back(new Blob<Dtype>());
 
-  	LOG(INFO) << "Setup success.";
-	return 0;
+  LayerParameter param;
+  ImageDataParameter *image_data_param = param.mutable_image_data_param();
+  image_data_param->set_root_folder(FLAGS_root_folder);
+  image_data_param->set_source(FLAGS_source);
+  static const int kBatchSize = 5;
+  static const int kWidth = 100;
+  static const int kHeight = 100;
+  image_data_param->set_batch_size(kBatchSize);
+  image_data_param->set_shuffle(false);
+  image_data_param->set_new_height(kHeight);
+  image_data_param->set_new_width(kWidth);
+
+  ImageLocalizationDataLayer<Dtype> layer(param);
+  layer.SetUp(blob_bottom_vec, blob_top_vec);
+  layer.Forward(blob_bottom_vec, blob_top_vec);
+
+  // Check the size of the labels.
+  CHECK_EQ(blob_top_vec[1]->num(), kBatchSize) << "Incorrect batch size.";
+  CHECK_EQ(blob_top_vec[1]->height(), 5) << "Incorrect number of labels.";
+
+  // Check the size of the output image.
+  CHECK_EQ(blob_top_vec[0]->num(), kBatchSize) << "Incorrect batch size.";
+  CHECK_EQ(blob_top_vec[0]->channels(), 3) << "Not RGB image.";
+  CHECK_EQ(blob_top_vec[0]->width(), kWidth) << "Width is incorrect";
+  CHECK_EQ(blob_top_vec[0]->height(), kHeight) << "Height is incorrect.";
+
+  LOG(INFO) << "Setup success.";
+  return 0;
 }
