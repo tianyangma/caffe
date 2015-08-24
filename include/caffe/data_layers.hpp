@@ -257,6 +257,42 @@ class ImageDataLayer : public BasePrefetchingDataLayer<Dtype> {
   int lines_id_;
 };
 
+// Provides data to the Net from image files. Modified from ImageDataLayer.
+// The second top blob contains both class labels and bounding boxes.
+// NOTE(tianyang): A cleaner implementation might be add one more top blob.
+// for bounding boxes. However, we're restained by the BasePrefetchingDataLayer,
+// where only 2 top blobs are prefetched.
+template <typename Dtype>
+class ImageLocalizationDataLayer : public BasePrefetchingDataLayer<Dtype> {
+public:
+  explicit ImageLocalizationDataLayer(const LayerParameter &param)
+      : BasePrefetchingDataLayer<Dtype>(param) {}
+  virtual ~ImageLocalizationDataLayer();
+  virtual void DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
+                              const vector<Blob<Dtype> *> &top);
+
+  virtual inline const char *type() const { return "ImageLocalizationData"; }
+  virtual inline int ExactNumBottomBlobs() const { return 0; }
+  virtual inline int ExactNumTopBlobs() const { return 2; }
+
+protected:
+  shared_ptr<Caffe::RNG> prefetch_rng_;
+
+  virtual void ShuffleImages();
+  virtual void load_batch(Batch<Dtype> *batch);
+
+  vector<std::pair<std::string, vector<float> > > lines_;
+
+  // We need to track maximum number of objects in an image.
+  int max_num_objects_;
+
+  int lines_id_;
+
+  // Each object has 5 values. One for class id. Others are for the bounding
+  // box.
+  static const int kNumScalarsToEncodeObject = 5;
+};
+
 /**
  * @brief Provides data to the Net from memory.
  *
