@@ -18,19 +18,15 @@ classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat"
 def convert(size, box):
     dw = 1. / size[0]
     dh = 1. / size[1]
-    x = (box[0] + box[1]) / 2.0
-    y = (box[2] + box[3]) / 2.0
-    w = box[1] - box[0]
-    h = box[3] - box[2]
-    x = x * dw
-    w = w * dw
-    y = y * dh
-    h = h * dh
-    return (x, y, w, h)
+    x_min = box[0] * dw
+    x_max = box[1] * dw
+    y_min = box[2] * dh
+    y_max = box[3] * dh
+    return (x_min, x_max, y_min, y_max)
 
 # Parses the annotation of an image and writes the output by appending one line to the output file.
 # The format of the line is:
-# <image filename> <width> <height> <num_objects> <class id> <center x> <center y> <width> <height> ...
+# <image filename> <width> <height> <num_objects> <class id> <x_min> <x_max> <y_min> <y_max> ...
 # NOTE(tianyang):
 # image filename is a relative path. So we don't need to re-generate the annotations file when moving files around.
 # Root path can be specified in the image data layer params.
