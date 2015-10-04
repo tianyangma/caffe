@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <glog/logging.h>
+
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
   ImageDataParameter *image_data_param = param.mutable_image_data_param();
   image_data_param->set_root_folder(FLAGS_root_folder);
   image_data_param->set_source(FLAGS_source);
-  static const int kBatchSize = 5;
+  static const int kBatchSize = 3;
   static const int kWidth = 100;
   static const int kHeight = 100;
   image_data_param->set_batch_size(kBatchSize);
@@ -47,9 +48,14 @@ int main(int argc, char **argv) {
   layer.SetUp(blob_bottom_vec, blob_top_vec);
   layer.Forward(blob_bottom_vec, blob_top_vec);
 
+  const Blob<Dtype>* blob = blob_top_vec[1];
+  for (int i = 0; i < blob->count(0); ++i) {
+    LOG(INFO) << blob->cpu_data()[i];
+  }
+
   // Check the size of the labels.
   CHECK_EQ(blob_top_vec[1]->num(), kBatchSize) << "Incorrect batch size.";
-  CHECK_EQ(blob_top_vec[1]->height(), 5) << "Incorrect number of labels.";
+  CHECK_EQ(blob_top_vec[1]->channels() % 5, 0) << "Incorrect number of labels.";
 
   // Check the size of the output image.
   CHECK_EQ(blob_top_vec[0]->num(), kBatchSize) << "Incorrect batch size.";

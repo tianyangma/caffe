@@ -102,8 +102,7 @@ void ImageLocalizationDataLayer<Dtype>::DataLayerSetUp(
   // Class label and bounding boxes. We slightly abuse the term "label".
   vector<int> label_shape(4, 1);
   label_shape[0] = batch_size;
-  label_shape[1] = max_num_objects_;
-  label_shape[2] = kNumScalarsToEncodeObject;
+  label_shape[1] = max_num_objects_ * kNumScalarsToEncodeObject;
   top[1]->Reshape(label_shape);
   for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
     this->prefetch_[i].label_.Reshape(label_shape);
@@ -141,6 +140,7 @@ void ImageLocalizationDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   // on single input batches allows for inputs of varying dimension.
   cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
                                     new_height, new_width, is_color);
+  LOG(INFO) << lines_[lines_id_].first;
   // Use data_transformer to infer the expected blob shape from a cv_img.
   vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
   this->transformed_data_.Reshape(top_shape);
