@@ -22,11 +22,11 @@ def convert(size, box):
     x_max = box[1] * dw
     y_min = box[2] * dh
     y_max = box[3] * dh
-    return (x_min, x_max, y_min, y_max)
+    return (x_min, y_min, x_max, y_max)
 
 # Parses the annotation of an image and writes the output by appending one line to the output file.
 # The format of the line is:
-# <image filename> <width> <height> <num_objects> <class id> <x_min> <x_max> <y_min> <y_max> ...
+# <image filename> <width> <height> <num_objects> <x_min> <x_max> <y_min> <y_max> <class id> ...
 # NOTE(tianyang):
 # image filename is a relative path. So we don't need to re-generate the annotations file when moving files around.
 # Root path can be specified in the image data layer params.
@@ -58,7 +58,7 @@ def convert_annotation(year, image_id, out_file):
         b = (float(xmlbox.find('xmin').text), float(xmlbox.find('xmax').text), float(
             xmlbox.find('ymin').text), float(xmlbox.find('ymax').text))
         bb = convert((w, h), b)
-	annotations += " " + str(cls_id) + " " + " ".join([str(a) for a in bb])
+	annotations += " " + " ".join([str(a) for a in bb])  + " " + str(cls_id)
 
     out_file.write(" " + str(w) + " " + str(h))
     out_file.write(" " + str(num_objects))
@@ -79,3 +79,4 @@ for year, image_set in sets:
                         (wd, year, image_id))
         convert_annotation(year, image_id, out_file)
     list_file.close()
+out_file.close()
