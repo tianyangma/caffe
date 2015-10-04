@@ -383,6 +383,7 @@ message LayerParameter {
   optional TanHParameter tanh_param = 127;
   optional ThresholdParameter threshold_param = 128;
   optional WindowDataParameter window_data_param = 129;
+  optional MultiBoxParameter multibox_param = 150;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1151,4 +1152,12 @@ message PReLUParameter {
   optional FillerParameter filler = 1;
   // Whether or not slope paramters are shared across channels.
   optional bool channel_shared = 2 [default = false];
+}
+
+message MultiBoxParameter {
+  // The path of the prior file.
+  optional string priors_file = 1;
+
+  // The weight on the confidence loss.
+  optional float alpha = 2 [default = 0.01];
 }
