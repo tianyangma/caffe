@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from boto3.session import Session
 import argparse, time, json
 
