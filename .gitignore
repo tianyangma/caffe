@@ -93,3 +93,6 @@ LOCK
 LOG*
 CURRENT
 MANIFEST-*
+
+# pem file
+scripts/gpu_instance.pem
