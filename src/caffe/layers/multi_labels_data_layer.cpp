@@ -47,7 +47,7 @@ void MultiLabelsDataLayer<Dtype>::DataLayerSetUp(
             << top[0]->width();
   // label
   if (this->output_labels_) {
-    vector<int> label_shape(1, 4);
+    vector<int> label_shape(4, 1);
     label_shape[0] = batch_size;
     label_shape[1] = kMaxNumLabels + 1;
     top[1]->Reshape(label_shape);
