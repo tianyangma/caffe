@@ -17,9 +17,6 @@ void MultiBoxLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
   LOG(INFO) << "Opening prior file: " << priors_file;
   std::ifstream infile(priors_file.c_str());
 
-  // Set up the confidence weight.
-  alpha_ = this->layer_param_.multibox_param().alpha();
-
   vector<Dtype> priors;
   Dtype coordinate;
   int count = 0;
@@ -40,6 +37,9 @@ void MultiBoxLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
                     priors[index + 3], -1);
     this->prior_bounding_boxes_.push_back(box);
   }
+
+  // Set up the confidence weight.
+  alpha_ = this->layer_param_.multibox_param().alpha();
 }
 
 template <typename Dtype>
@@ -65,27 +65,25 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
 
   const int batch_size = bottom[0]->shape(0);
   const int num_predictions = bottom[0]->shape(1) / 5;
-  const int max_num_objects = bottom[1]->shape(1) / 5;
+
+  const int num_objects = static_cast<int>(bottom[1]->cpu_data()[0]) / 5;
 
   Dtype *loss = top[0]->mutable_cpu_data();
   *loss = 0;
+
+  const Dtype *labels = bottom[1]->cpu_data() + 1;
+
   for (int batch = 0; batch < batch_size; ++batch) {
     ground_truth_boxes_.push_back(vector<BoundingBox>());
     predicted_boxes_.push_back(vector<BoundingBox>());
 
     // Decode the ground-truth objects.
-    const Dtype *data =
-        bottom[1]->cpu_data() + bottom[1]->offset(batch, 0, 0, 0);
-    for (int j = 0; j < max_num_objects; ++j) {
+    const Dtype *data = labels + bottom[1]->offset(batch, 0, 0, 0);
+    for (int j = 0; j < num_objects; ++j) {
       const int index = 5 * j;
       BoundingBox box(data[index], data[index + 1], data[index + 2],
                       data[index + 3], -1);
-      // Each image may have different number of ground-truth objects. However,
-      // to have the same dimension to form a Blob, we filled -1s. Here, we
-      // check if an object is a real ground-truth object.
-      if (box.IsValid()) {
-        ground_truth_boxes_[batch].push_back(box);
-      }
+      ground_truth_boxes_[batch].push_back(box);
     }
 
     // Match priors to the ground-truth objects.
@@ -155,7 +153,7 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(
 template <typename Dtype>
 vector<int> MultiBoxLossLayer<Dtype>::MatchPriorsToObjects(
     const vector<BoundingBox> &objects) const {
-  // If an prior gets no match, the label will be -1.
+  // If a prior gets no match, the label will be -1.
   const int num_priors = this->prior_bounding_boxes_.size();
   vector<int> assignments(num_priors);
   for (int i = 0; i < num_priors; ++i) {
@@ -191,4 +189,4 @@ STUB_GPU(MultiBoxLossLayer);
 INSTANTIATE_CLASS(MultiBoxLossLayer);
 REGISTER_LAYER_CLASS(MultiBoxLoss);
 
-}  // namespace caffe
+} // namespace caffe
