@@ -1,7 +1,7 @@
 name: "VGG_ILSVRC_16_layers"
 layer {
-  name: "ImageLocalizationDataLayer"
-  type: "ImageLocalizationData"
+  name: "MultiLabelsDataLayer"
+  type: "MultiLabelsData"
   top: "data"
   top: "label"
   transform_param {
@@ -9,12 +9,10 @@ layer {
     mean_value: 117
     mean_value: 123
   }
-  image_data_param {
-    source: "/home/tianyang/code/caffe/examples/multibox/label.txt"
-    root_folder: "/home/tianyang/code/caffe/examples/multibox/"
-    new_height: 224
-    new_width: 224
+  data_param {
+    source: "data/pascal/PASCAL_VOC_2007_224_224"
     batch_size: 32
+    backend: LMDB
   }
 }
 layer {
@@ -445,7 +443,8 @@ layer {
   inner_product_param {
     num_output: 4000
     weight_filler {
-      type: "xavier"
+      type: "constant"
+      value: 0
     }
     bias_filler {
       type: "constant"
@@ -460,6 +459,6 @@ layer {
   bottom: "label"
   top: "loss"
   multibox_param {
-    priors_file: "/home/tianyang/code/caffe/examples/multibox/ipriors800.txt"
+    priors_file: "examples/multibox/ipriors800.txt"
   } 
 }

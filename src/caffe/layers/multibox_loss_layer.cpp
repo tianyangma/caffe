@@ -97,6 +97,7 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
       const int index = 5 * i;
       BoundingBox predict_values(data[index], data[index + 1], data[index + 2],
                                  data[index + 3], Logistic(data[index + 4]));
+
       BoundingBox predict_bbox = predict_values + prior_bounding_boxes_[i];
       predicted_boxes_[batch].push_back(predict_bbox);
 

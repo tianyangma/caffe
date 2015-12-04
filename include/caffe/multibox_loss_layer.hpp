@@ -5,8 +5,7 @@
 
 namespace caffe {
 
-template <typename Dtype> 
-class MultiBoxLossLayer : public LossLayer<Dtype> {
+template <typename Dtype> class MultiBoxLossLayer : public LossLayer<Dtype> {
 public:
   explicit MultiBoxLossLayer(const LayerParameter &param)
       : LossLayer<Dtype>(param) {}
@@ -25,6 +24,7 @@ protected:
   virtual void Backward_cpu(const vector<Blob<Dtype> *> &top,
                             const vector<bool> &propagate_down,
                             const vector<Blob<Dtype> *> &bottom);
+
 private:
   class BoundingBox {
   public:
@@ -80,6 +80,11 @@ private:
       dist += (xmax - other.xmax) * (xmax - other.xmax);
       dist += (ymax - other.ymax) * (ymax - other.ymax);
       return dist;
+    }
+
+    void DebugString() const {
+      LOG(INFO) << xmin << "-" << ymin << "-" << xmax << "-" << ymax << "-"
+                << confidence;
     }
 
     Dtype xmin;
