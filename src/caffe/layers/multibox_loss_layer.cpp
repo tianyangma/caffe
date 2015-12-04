@@ -182,7 +182,7 @@ Dtype MultiBoxLossLayer<Dtype>::Logistic(const Dtype &logit) {
   return 1.0 / (1 + exp(-logit));
 }
 
-#ifdef CPU_ONLY
+#ifndef CPU_ONLY
 STUB_GPU(MultiBoxLossLayer);
 #endif
 
