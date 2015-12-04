@@ -17,7 +17,7 @@ else
   fi
 
   echo "Unzipping..."
-  tar zxvf $FILE -C $PASCAL_DIR 
+  tar xvf $FILE -C $PASCAL_DIR
 
   echo "Done."
 fi
