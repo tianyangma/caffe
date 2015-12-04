@@ -8,6 +8,7 @@
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
 #include "caffe/filler.hpp"
+#include "caffe/multibox_loss_layer.hpp"
 #include "caffe/vision_layers.hpp"
 
 #include "caffe/test/test_caffe_main.hpp"
@@ -24,7 +25,7 @@ class MultiBoxLossLayerTest : public MultiDeviceTest<TypeParam> {
 protected:
   MultiBoxLossLayerTest()
       : predicts_(new Blob<Dtype>(1, 10, 1, 1)),
-        ground_truths_(new Blob<Dtype>(1, 8, 1, 1)), loss_(new Blob<Dtype>()) {}
+        ground_truths_(new Blob<Dtype>(1, 201, 1, 1)), loss_(new Blob<Dtype>()) {}
 
   virtual ~MultiBoxLossLayerTest() {
     delete predicts_;
@@ -36,16 +37,14 @@ protected:
     // On the first image, we have ground-truth as object0 (0.1, 0.1, 0.3, 0.3)
     Dtype *data = this->ground_truths_->mutable_cpu_data();
 
-    data[0] = 0.1;
-    data[1] = 0.1;
-    data[2] = 0.3;
-    data[3] = 0.3;
+    // There're 5 labels.
+    data[0] = 5;
 
-    // Also, object1 (-1, -1, -1, -1).
-    data[4] = -1;
-    data[5] = -1;
-    data[6] = -1;
-    data[7] = -1;
+    data[1] = 0.1;
+    data[2] = 0.1;
+    data[3] = 0.3;
+    data[4] = 0.3;
+    data[5] = 0;
 
     // Priors are (0.1, 0.1, 0.3, 0.3) and (0.4, 0.4, 0.6, 0.6)
     // So prior0 -> object0.
