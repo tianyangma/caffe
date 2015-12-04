@@ -1,13 +1,12 @@
 net: "examples/multibox/vgg_train_val.prototxt"
-display: 2
-average_loss: 40
-base_lr: 0.00001
+display: 10
+base_lr: 0.01
 lr_policy: "step"
 stepsize: 320000
 gamma: 0.96
 max_iter: 10000000
 momentum: 0.9
 weight_decay: 0.0002
-snapshot: 40000
+snapshot: 2000
 snapshot_prefix: "models/multibox/vgg_16"
 solver_mode: GPU
