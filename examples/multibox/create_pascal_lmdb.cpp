@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   CHECK(!FLAGS_lmdb_dir.empty()) << "Please set --lmdb_dir.";
 
   LOG(INFO) << "Opening file: " << FLAGS_label_filename;
-  std::ifstream label_file(FLAGS_label_filename);
+  std::ifstream label_file(FLAGS_label_filename.c_str());
 
   string image_filename;
 
