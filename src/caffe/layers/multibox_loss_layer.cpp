@@ -114,13 +114,18 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
       *loss += loc_loss;
     }
   }
+
+  *loss /= num_predictions * batch_size;
 }
 
 template <typename Dtype>
 void MultiBoxLossLayer<Dtype>::Backward_cpu(
     const vector<Blob<Dtype> *> &top, const vector<bool> &propagate_down,
     const vector<Blob<Dtype> *> &bottom) {
+
   const int batch_size = bottom[0]->shape(0);
+  const int num_predictions = bottom[0]->shape(1) / 5;
+  const Dtype weight = 1.0 / batch_size / num_predictions;
 
   // Only propagate the gradient to predictions.
   Dtype *bottom_diff = bottom[0]->mutable_cpu_diff();
@@ -132,10 +137,10 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(
       const int label = labels_[batch][j];
       if (label >= 0) {
         const BoundingBox &matched_box = ground_truth_boxes_[batch][label];
-        diff[index] = predicted_box.xmin - matched_box.xmin;
-        diff[index + 1] = predicted_box.ymin - matched_box.ymin;
-        diff[index + 2] = predicted_box.xmax - matched_box.xmax;
-        diff[index + 3] = predicted_box.ymax - matched_box.ymax;
+        diff[index + 0] = (predicted_box.xmin - matched_box.xmin) * weight;
+        diff[index + 1] = (predicted_box.ymin - matched_box.ymin) * weight;
+        diff[index + 2] = (predicted_box.xmax - matched_box.xmax) * weight;
+        diff[index + 3] = (predicted_box.ymax - matched_box.ymax) * weight;
       } else {
         // Gradient will be 0 if it's a false positive.
         for (int k = 0; k < 4; ++k) {
@@ -146,7 +151,7 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(
 
       // NOTE(tianyangm): this is in fact gradient = -1/c if true-positive, and
       // 1 / ( 1 - c) if false positive.
-      diff[index + 4] = alpha_ * (c - (label >= 0)) / ((1 - c) * c);
+      diff[index + 4] = alpha_ * (c - (label >= 0)) / ((1 - c) * c) * weight;
     }
   }
 }
