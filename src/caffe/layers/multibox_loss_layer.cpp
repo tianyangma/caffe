@@ -66,19 +66,18 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   const int batch_size = bottom[0]->shape(0);
   const int num_predictions = bottom[0]->shape(1) / 5;
 
-  const int num_objects = static_cast<int>(bottom[1]->cpu_data()[0]) / 5;
-
   Dtype *loss = top[0]->mutable_cpu_data();
   *loss = 0;
 
-  const Dtype *labels = bottom[1]->cpu_data() + 1;
-
   for (int batch = 0; batch < batch_size; ++batch) {
+    const Dtype *num_labels = bottom[1]->cpu_data() + bottom[1]->offset(batch, 0, 0, 0);
+    const int num_objects = static_cast<int>(*num_labels) / 5;
+
     ground_truth_boxes_.push_back(vector<BoundingBox>());
     predicted_boxes_.push_back(vector<BoundingBox>());
 
     // Decode the ground-truth objects.
-    const Dtype *data = labels + bottom[1]->offset(batch, 0, 0, 0);
+    const Dtype *data = num_labels + 1;
     for (int j = 0; j < num_objects; ++j) {
       const int index = 5 * j;
       BoundingBox box(data[index], data[index + 1], data[index + 2],
@@ -97,6 +96,7 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
       const int index = 5 * i;
       BoundingBox predict_values(data[index], data[index + 1], data[index + 2],
                                  data[index + 3], Logistic(data[index + 4]));
+
 
       BoundingBox predict_bbox = predict_values + prior_bounding_boxes_[i];
       predicted_boxes_[batch].push_back(predict_bbox);
