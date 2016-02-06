@@ -1,3 +1,5 @@
+#ifdef MULTIBOX // Disable gpu impl and force fall back to the cpu impl.
+
 #include <algorithm>
 #include <cfloat>
 #include <vector>
@@ -126,3 +128,5 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 INSTANTIATE_LAYER_GPU_FUNCS(SoftmaxWithLossLayer);
 
 }  // namespace caffe
+
+#endif // MULTIBOX
